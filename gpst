@@ -1,26 +1,35 @@
 #!/usr/bin/env ruby
 
 require 'pathname'
-require 'highline'
+require 'highline/import'
 
 class ContestImpl
   def initialize type
-    @type =type
+    @type = type
   end
 
-  def title title
-    @title = title
+  def title title=nil
+    @title = title if title
+    @title
   end
 
-  def path path
-    @path=path
+  def path path=nil
+    @path = path if path
+    @path
+  end
+  
+  def url url=nil
+    @url = url if url
+    @url
   end
 
   def tasks &block
-    @tasks = Tasks.new
-    @tasks.instance_eval &block
+    @tasks = Tasks.new if block
+    @tasks.instance_eval &block if block
+    @tasks
   end
 
+  :private
   def show
     puts "type::#{@type}"
     puts "title::#{@title}" if @title
@@ -34,21 +43,26 @@ class ContestImpl
 end
 
 class Tasks
+  attr_accessor :stock, :path
+
   def initialize
     @stock = []
     @path = nil
   end
 
-  def revision rev
-    @rev = rev
+  def revision rev=nil
+    @rev = rev if rev
+    @rev
   end
 
-  def path_rel path
-    @path_rel = path
+  def path_rel path=nil
+    @path_rel = path if path
+    @path_rel
   end
 
-  def path_abs path
-    @path_abs = path
+  def path_abs path=nil
+    @path_abs = path if path
+    @path_abs
   end
 
   def task name, &block
@@ -57,9 +71,10 @@ class Tasks
     @stock.push _task
   end
 
+  :private
   def show prefix
     puts "#{prefix}Revison: #{@rev}"
-    puts "#{prefix}\tPath: #{get_path}"
+    puts "#{prefix}Path: #{get_path}"
 
     @stock.each do |t|
       t.show "#{prefix}\t"
@@ -74,12 +89,12 @@ class Tasks
 
     puts 'error処理しなきゃね' unless @path && p_path
 
-    @path_abs=@path
+    @path_abs = @path
 
     from = Pathname.new p_path
     to = Pathname.new @path_abs
 
-    @path_rel=to.relative_path_from(from).to_s
+    @path_rel = to.relative_path_from(from).to_s
     @path
   end
 
@@ -92,25 +107,31 @@ class Tasks
 end
 
 class Task
+  attr_accessor :path, :name
+  
   def initialize name
     @name = name
     @path = nil
   end
 
-  def memo memo
-    @memo = memo
+  def memo memo=nil
+    @memo = memo if memo
+    @memo
   end
 
-  def path_rel path
-    @path_rel = path
-    @path_abs = nil
+  def path_rel path=nil
+    @path_rel = path if path
+    @path_abs = nil if path
+    @path_rel
   end
 
-  def path_abs path
-    @path_abs = path
-    @path_rel = nil
+  def path_abs path=nil
+    @path_abs = path if path
+    @path_rel = nil if path
+    @path_abs
   end
 
+  :private
   def show prefix
     puts "#{prefix}Task: #{@name}"
     puts "#{prefix}\tPath: #{get_path}"
@@ -125,12 +146,12 @@ class Task
 
     puts 'error処理しなきゃね' unless @path && p_path
 
-    @path_abs=@path
+    @path_abs = @path
 
     from = Pathname.new p_path
     to = Pathname.new @path_abs
 
-    @path_rel=to.relative_path_from(from).to_s
+    @path_rel = to.relative_path_from(from).to_s
     @path
   end
 
@@ -139,15 +160,46 @@ class Task
   end
 end
 
-def contest type, &block 
-  con = ContestImpl.new type
-  con.instance_eval &block
-  con.propagate
-  con.show
+class Gpst
+  def initialize type, &block
+    @con = ContestImpl.new type
+    @con.instance_eval &block
+    @con.propagate
+  end
+
+  def show
+    @con.show
+  end
+
+  def smp_validation
+    @con.tasks.stock.map {|s|
+      s.name.to_s
+    }. reduce {|r, s|
+      "#{r}/#{s}"
+    }
+  end
+
+  def validation
+    @con.tasks.stock.map {|s|
+      s.name.to_s
+    }. reduce {|r, s|
+      "#{r}|#{s}"
+    }
+  end
 end
 
-
+def contest type, &block
+  $gpst = Gpst.new (type), &block
+end
 
 load File.expand_path(ARGV[0])
 
-exit unless HighLine.agree('This will drop the User table. Do you want to proceed?')
+$gpst.show
+
+id = ask("What would you like to submit? [#{$gpst.smp_validation}] ") { |num| num.limit = 1, num.validate = /(#{$gpst.validation})/i }
+
+confirm = ask("Submit '#{id}'.  Do it? [Y/N] ") { |yn| yn.limit = 1, yn.validate = /[yn]/i }
+exit unless confirm.downcase == 'y'
+
+
+
