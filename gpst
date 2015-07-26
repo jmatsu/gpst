@@ -1,0 +1,153 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+require 'highline'
+
+class ContestImpl
+  def initialize type
+    @type =type
+  end
+
+  def title title
+    @title = title
+  end
+
+  def path path
+    @path=path
+  end
+
+  def tasks &block
+    @tasks = Tasks.new
+    @tasks.instance_eval &block
+  end
+
+  def show
+    puts "type::#{@type}"
+    puts "title::#{@title}" if @title
+    puts "path::#{@path}"
+    @tasks.show "\t"
+  end
+
+  def propagate
+    @tasks.propagate @path
+  end
+end
+
+class Tasks
+  def initialize
+    @stock = []
+    @path = nil
+  end
+
+  def revision rev
+    @rev = rev
+  end
+
+  def path_rel path
+    @path_rel = path
+  end
+
+  def path_abs path
+    @path_abs = path
+  end
+
+  def task name, &block
+    _task = Task.new name
+    _task.instance_eval &block
+    @stock.push _task
+  end
+
+  def show prefix
+    puts "#{prefix}Revison: #{@rev}"
+    puts "#{prefix}\tPath: #{get_path}"
+
+    @stock.each do |t|
+      t.show "#{prefix}\t"
+    end
+  end
+
+  def get_path p_path=nil
+    return @path if @path
+
+    @path = @path_abs if @path_abs
+    @path = File.join(p_path, @path_rel) if @path_rel && p_path
+
+    puts 'error処理しなきゃね' unless @path && p_path
+
+    @path_abs=@path
+
+    from = Pathname.new p_path
+    to = Pathname.new @path_abs
+
+    @path_rel=to.relative_path_from(from).to_s
+    @path
+  end
+
+  def propagate p_path
+    get_path p_path
+    @stock.each do |t|
+      t.propagate get_path
+    end
+  end
+end
+
+class Task
+  def initialize name
+    @name = name
+    @path = nil
+  end
+
+  def memo memo
+    @memo = memo
+  end
+
+  def path_rel path
+    @path_rel = path
+    @path_abs = nil
+  end
+
+  def path_abs path
+    @path_abs = path
+    @path_rel = nil
+  end
+
+  def show prefix
+    puts "#{prefix}Task: #{@name}"
+    puts "#{prefix}\tPath: #{get_path}"
+    puts "#{prefix}\tMemo: #{@memo}" if @memo
+  end
+
+  def get_path p_path=nil
+    return @path if @path
+
+    @path = @path_abs if @path_abs
+    @path = File.join(p_path, @path_rel) if @path_rel && p_path
+
+    puts 'error処理しなきゃね' unless @path && p_path
+
+    @path_abs=@path
+
+    from = Pathname.new p_path
+    to = Pathname.new @path_abs
+
+    @path_rel=to.relative_path_from(from).to_s
+    @path
+  end
+
+  def propagate p_path
+    get_path p_path
+  end
+end
+
+def contest type, &block 
+  con = ContestImpl.new type
+  con.instance_eval &block
+  con.propagate
+  con.show
+end
+
+
+
+load File.expand_path(ARGV[0])
+
+exit unless HighLine.agree('This will drop the User table. Do you want to proceed?')

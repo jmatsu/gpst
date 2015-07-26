@@ -1,0 +1,18 @@
+contest ("abc") {
+    title "AtCoder Beginner Contest"
+    path "foo"
+    tasks {
+        revision 21
+        path_rel "bar"
+
+        task ("a") {
+            path_rel "baz"
+            memo "A"
+        }
+
+        task ("b") {
+            path_rel "baz"
+            memo "A"
+        }
+    }
+}
