@@ -4,8 +4,11 @@ require 'optparse'
 require 'pathname'
 require 'highline/import'
 
-require File.expand_path('../lang/lang.rb', __FILE__)
-require File.expand_path('../process/process.rb', __FILE__)
+locate = File.readlink(__FILE__) if File.symlink? __FILE__
+locate ||= __FILE__
+
+require File.expand_path('../lang/lang.rb', locate)
+require File.expand_path('../process/process.rb', locate)
 
 class ContestImpl
   def type type=nil

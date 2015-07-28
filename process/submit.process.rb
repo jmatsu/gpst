@@ -1,3 +1,5 @@
+require 'erb'
+
 modules=[]
 
 Dir.glob("#{File.expand_path('../submit', __FILE__)}/*.submit.rb").each {|d|
@@ -6,17 +8,20 @@ Dir.glob("#{File.expand_path('../submit', __FILE__)}/*.submit.rb").each {|d|
 }
 
 module Submit
+
   module Inner
 
   end
 
   class << self
+    include ERB::Util
+
     :private
 
     def process file_path, *args
       contest = args[0]
       selectee = args[1]
-
+      
       module_proc = Submit.class.const_get(contest.type.capitalize)
       module_proc.send("submit", file_path, contest, selectee)
     end

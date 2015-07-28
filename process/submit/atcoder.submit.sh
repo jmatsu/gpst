@@ -33,11 +33,11 @@ function main() {
   local task_id=`echo "${sub_url}"|grep -o '=.*'|sed -e 's/=//'`
   local lang_id=`cat "${_tempfile_html}"|grep -i "bash "|grep -o "value=\"[0-9]*\""|sed -e 's/"//g' -e 's/value=//'|uniq`
 
-  local langs=`cat "${_tempfile_html}"|grep "language_id_"|grep -o 'name="[^"]*"'|sed -e 's/name="//g' -e "s/\"/=${lang_id}/"|tr "\n" " -d "`
+  local langs=`cat "${_tempfile_html}"|grep "language_id_"|grep -o 'name="[^"]*"'|sed -e 's/name="//g' -e "s/\"/=${lang_id} -d /"`
 
   local csrf_token=`cat "${_tempfile_html}"|grep "__session"|grep -o 'value=".*"'|sed -e 's/"//g' -e 's/value=//'`
 
-  curl -X POST -sL "${sub_url}" -d task_id=${task_id} -d ${langs} -d __session=${csrf_token} -d source_code="$(cat $submitee_file)" -b "${_tempfile_cookie}" --referer "${url_ssl%*/}/submit" &> /dev/null
+  curl -X POST -sL "${sub_url}" -d task_id=${task_id} -d ${langs} __session=${csrf_token} -d "source_code=$(cat $submitee_file|nkf -wMQ|sed 's/=$//g'|tr = %|tr -d \\n)" -b "${_tempfile_cookie}" --referer "${url_ssl%*/}/submit" &> /dev/null
 
   open "${url_ssl%*/}/submissions/me"
 }
