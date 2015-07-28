@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
+#set -x
 
 function post_proc() {
   [ -f $_tempfile_html ] && rm -f $_tempfile_html
