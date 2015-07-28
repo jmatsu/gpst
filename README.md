@@ -1,2 +1,2 @@
 # gpst
-Submit tool for programming contests with git
+Submission command line tool for programming contests

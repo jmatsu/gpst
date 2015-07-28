@@ -1,7 +1,3 @@
-require 'yasuri'
-require 'mechanize'
-require 'json'
-
 modules=[]
 
 Dir.glob("#{File.expand_path('../submit', __FILE__)}/*.submit.rb").each {|d|
