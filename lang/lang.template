@@ -1,0 +1,19 @@
+module Foo
+  class << self
+    :private
+    
+    def trim_foo line
+      !line[/foo/i]
+    end
+  end
+  def foo file_path
+    Tempfile.open(File.basename(file_path)) {|tf|
+      lines = File.readlines(file_path)
+      lines.select! {|l|
+        Foo.trim_foo l
+      }
+      tf.write lines.join("\n")
+      tf.path
+    }
+  end
+end

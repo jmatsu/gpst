@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require 'pathname'
 require 'highline/import'
+require File.expand_path('../lang/lang.rb', __FILE__)
 
 class ContestImpl
   def initialize type
@@ -72,7 +74,7 @@ class Tasks
   end
 
   :private
-  def show prefix
+  def show prefix=""
     puts "#{prefix}Revison: #{@rev}"
     puts "#{prefix}Path: #{get_path}"
 
@@ -114,6 +116,11 @@ class Task
     @path = nil
   end
 
+  def lang lang=nil
+    @lang = lang if lang
+    @lang
+  end
+
   def memo memo=nil
     @memo = memo if memo
     @memo
@@ -132,9 +139,10 @@ class Task
   end
 
   :private
-  def show prefix
+  def show prefix=""
     puts "#{prefix}Task: #{@name}"
     puts "#{prefix}\tPath: #{get_path}"
+    puts "#{prefix}\tLang: #{@lang}" if @lang
     puts "#{prefix}\tMemo: #{@memo}" if @memo
   end
 
@@ -171,6 +179,10 @@ class Gpst
     @con.show
   end
 
+  def abstract
+    "#{@con.title}, Rev.#{@con.tasks.revision}, #{@con.path}"
+  end
+
   def smp_validation
     @con.tasks.stock.map {|s|
       s.name.to_s
@@ -186,20 +198,69 @@ class Gpst
       "#{r}|#{s}"
     }
   end
+
+  def get_solver id
+    @con.tasks.stock.select {|s|
+      s.name==id
+    }.first
+  end
 end
 
 def contest type, &block
   $gpst = Gpst.new (type), &block
 end
 
+options={}
+
+OptionParser.new do |opt|
+  opt.on('-f FILE', 'Use specified file instead of configured file') {|v|
+    options[:f] = v
+  }
+
+  opt.on('-p PROCESS', 'Determine what do for the selected file. Default is "submit"') {|v|
+    options[:p] = v
+  }
+
+  opt.on('-l', 'Show available languages, processes') {|v|
+    options[:l] = v
+  }
+
+  opt.parse!(ARGV)
+end
+
+begin
+  puts Lang.singleton_methods
+  exit
+end if options[:l]
+
+begin
+  puts 'At least one argument required'
+  exit
+end if ARGV.empty?
+
+# load configuration
 load File.expand_path(ARGV[0])
 
-$gpst.show
+# show data
+puts $gpst.abstract
 
-id = ask("What would you like to submit? [#{$gpst.smp_validation}] ") { |num| num.limit = 1, num.validate = /(#{$gpst.validation})/i }
+id = ask("What would you like to submit? [#{$gpst.smp_validation}] ") { |num| 
+  num.limit = 1, num.validate = /(#{$gpst.validation})/i 
+}
 
-confirm = ask("Submit '#{id}'.  Do it? [Y/N] ") { |yn| yn.limit = 1, yn.validate = /[yn]/i }
+confirm = ask("Select '#{id}'.  Continue? [Y/N] ") { |yn| yn.limit = 1, yn.validate = /[yn]/i }
 exit unless confirm.downcase == 'y'
 
+selectee = $gpst.get_solver id
 
+puts "..."
+puts "Selectee at \"#{selectee.path}\""
+puts "Language is \"#{selectee.lang}\""
+puts "..."
+puts "Load the content..."
+puts "..."
+
+tmp_path = Lang.send(selectee.lang, File.expand_path(selectee.path))
+
+puts File.read(tmp_path)
 

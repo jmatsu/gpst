@@ -1,18 +1,21 @@
 contest ("abc") {
     title "AtCoder Beginner Contest"
-    path "foo"
+    path "~/Projects/procon/atcoder/BashCoder/abc"
+
     tasks {
-        revision 21
-        path_rel "bar"
+        revision 23
+        path_rel "001"
 
         task ("a") {
-            path_rel "baz"
+            path_rel "a.sh"
+            lang "bash"
             memo "A"
         }
 
         task ("b") {
-            path_rel "baz"
-            memo "A"
+            path_rel "b.sh"
+            lang "bash"
+            memo "A2"
         }
     }
 }
