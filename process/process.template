@@ -1,0 +1,9 @@
+module Foo
+  class << self
+    :private
+
+    def process file_path, type, *args
+      # do foo, bar, baz
+    end
+  end
+end

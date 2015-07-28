@@ -4,7 +4,7 @@ modules=[]
 
 Dir.glob("#{File.expand_path('..', __FILE__)}/*.lang.rb").each {|d|
   require d
-  modules.push File.open(d).read[/module (.*)\n/, 1]
+  modules.push File.open(d).read[/^module (.*)\n/, 1]
 }
 
 module Lang
