@@ -4,8 +4,14 @@
 
 ## 現状
 
-Submit :: AtCoder(ARC, ABC)
-Copy :: For all
+Submit
+
++ AtCoder ARC
++ AtCoder ABC
+
+Copy
+
++ For all
 
 Language
 
@@ -48,25 +54,26 @@ Language
     Sample: abc_test.gpst
 
 ## Directories
-+--Gemfile
-|--LICENSE
-|--README.md
-|--abc_test.gpst
-|--gpst
-|--lang
-|  |--bash.lang.rb
-|  |--java.lang.rb
-|  |--lang.rb
-|  └--lang.template
-└--process
-   |--copy.process.rb
-   |--process.rb
-   |--process.template
-   |--submit.process.rb
-   └--submit
-      |--abc.submit.rb
-      |--arc.submit.rb
-      └--atcoder.submit.sh
+
+    +--Gemfile
+    |--LICENSE
+    |--README.md
+    |--abc_test.gpst
+    |--gpst
+    |--lang
+    |  |--bash.lang.rb
+    |  |--java.lang.rb
+    |  |--lang.rb
+    |  └--lang.template
+    └--process
+       |--copy.process.rb
+       |--process.rb
+       |--process.template
+       |--submit.process.rb
+       └--submit
+          |--abc.submit.rb
+          |--arc.submit.rb
+          └--atcoder.submit.sh
 
 ## Extension
 
