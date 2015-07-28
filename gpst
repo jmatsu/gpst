@@ -3,11 +3,14 @@
 require 'optparse'
 require 'pathname'
 require 'highline/import'
+
 require File.expand_path('../lang/lang.rb', __FILE__)
+require File.expand_path('../process/process.rb', __FILE__)
 
 class ContestImpl
-  def initialize type
-    @type = type
+  def type type=nil
+    @type = type if type
+    @type
   end
 
   def title title=nil
@@ -40,6 +43,7 @@ class ContestImpl
   end
 
   def propagate
+    @url = eval("\"#{@url}\"")
     @tasks.propagate @path
   end
 end
@@ -169,8 +173,8 @@ class Task
 end
 
 class Gpst
-  def initialize type, &block
-    @con = ContestImpl.new type
+  def initialize &block
+    @con = ContestImpl.new
     @con.instance_eval &block
     @con.propagate
   end
@@ -180,7 +184,7 @@ class Gpst
   end
 
   def abstract
-    "#{@con.title}, Rev.#{@con.tasks.revision}, #{@con.path}"
+    "#{@con.title}, Rev.#{@con.tasks.revision}, #{@con.url}, #{@con.path}"
   end
 
   def smp_validation
@@ -204,19 +208,20 @@ class Gpst
       s.name==id
     }.first
   end
+
+  def ask_yn msg, msg2="Continue"
+    confirm = ask("#{msg}.  #{msg2}? [Y/N] ") { |yn| yn.limit = 1, yn.validate = /[yn]/i }
+    confirm.downcase == 'y'
+  end
 end
 
-def contest type, &block
-  $gpst = Gpst.new (type), &block
+def contest &block
+  $gpst = Gpst.new &block
 end
 
 options={}
 
 OptionParser.new do |opt|
-  opt.on('-f FILE', 'Use specified file instead of configured file') {|v|
-    options[:f] = v
-  }
-
   opt.on('-p PROCESS', 'Determine what do for the selected file. Default is "submit"') {|v|
     options[:p] = v
   }
@@ -233,6 +238,8 @@ begin
   exit
 end if options[:l]
 
+options[:p]="submit" unless options[:p]
+
 begin
   puts 'At least one argument required'
   exit
@@ -244,23 +251,27 @@ load File.expand_path(ARGV[0])
 # show data
 puts $gpst.abstract
 
-id = ask("What would you like to submit? [#{$gpst.smp_validation}] ") { |num| 
+id = ask("What would you like to process? [#{$gpst.smp_validation}] ") { |num| 
   num.limit = 1, num.validate = /(#{$gpst.validation})/i 
 }
 
-confirm = ask("Select '#{id}'.  Continue? [Y/N] ") { |yn| yn.limit = 1, yn.validate = /[yn]/i }
-exit unless confirm.downcase == 'y'
+exit unless $gpst.ask_yn "Select '#{id}'"
 
 selectee = $gpst.get_solver id
 
 puts "..."
-puts "Selectee at \"#{selectee.path}\""
-puts "Language is \"#{selectee.lang}\""
+puts "Selectee at \"#{selectee.path}\", \##{selectee.lang}"
 puts "..."
 puts "Load the content..."
 puts "..."
 
-tmp_path = Lang.send(selectee.lang, File.expand_path(selectee.path))
+module_lang = Gpst.class.const_get(selectee.lang.capitalize)
+tmp_path = module_lang.send("filter", File.expand_path(selectee.path))
 
-puts File.read(tmp_path)
+system("less #{tmp_path}") if $gpst.ask_yn "Filtered", "Show"
 
+exit unless $gpst.ask_yn "#{options[:p].capitalize}"
+
+module_proc = Gpst.class.const_get(options[:p].capitalize)
+
+module_proc.send("process", tmp_path)

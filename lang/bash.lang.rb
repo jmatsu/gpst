@@ -2,19 +2,19 @@ module Bash
   class << self
     :private 
     
-    def trim_debug line
-      !line[/set\ -[eux]/i]
+    def submit? line
+      line[/set\ -[eux]/i].nil?
     end
-  end
 
-  def bash file_path
-    Tempfile.open(File.basename(file_path)) {|tf|
-      lines = File.readlines(file_path)
-      lines.select! {|l|
-        Bash.trim_debug l
+    def filter file_path
+      Tempfile.open(File.basename(file_path)) {|tf|
+        lines = File.readlines(file_path)
+        lines.select! {|l|
+          Bash.submit? l
+        }
+        tf.write lines.join("\n")
+        tf.path
       }
-      tf.write lines.join("\n")
-      tf.path
-    }
+    end
   end
 end

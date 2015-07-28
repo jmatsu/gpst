@@ -2,19 +2,19 @@ module Java
   class << self
     :private
     
-    def trim_package line
-      !line[/^package\ .*/i]
+    def submit? line
+      line[/^package\ .*/i].nil? && line[/[\t ]*Log\..*/i].nil?
     end
-  end
 
-  def java file_path
-    Tempfile.open(File.basename(file_path)) {|tf|
-      lines = File.readlines(file_path)
-      lines.select! {|l|
-        Java.trim_package l
+    def filter file_path
+      Tempfile.open(File.basename(file_path)) {|tf|
+        lines = File.readlines(file_path)
+        lines.select! {|l|
+          Java.submit? l
+        }
+        tf.write lines.join("\n")
+        tf.path
       }
-      tf.write lines.join("\n")
-      tf.path
-    }
+    end
   end
 end
