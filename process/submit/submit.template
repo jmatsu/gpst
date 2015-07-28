@@ -1,0 +1,9 @@
+module SubmitTemplate
+  class << self
+    :private
+
+    def submit file_path, contest, selectee
+      # do foo
+    end
+  end
+end
