@@ -37,7 +37,7 @@ function main() {
 
   local csrf_token=`cat "${_tempfile_html}"|grep "__session"|grep -o 'value=".*"'|sed -e 's/"//g' -e 's/value=//'`
 
-  curl -X POST -sL "${sub_url}" -d task_id=${task_id} -d ${langs} __session=${csrf_token} -d "source_code=$(cat $submitee_file|nkf -wMQ|sed 's/=$//g'|tr = %|tr -d \\n)" -b "${_tempfile_cookie}" --referer "${url_ssl%*/}/submit" &> /dev/null
+  curl -X POST -sL "${sub_url}" -d task_id=${task_id} -d ${langs} __session=${csrf_token} --data-binary "source_code=$(cat $submitee_file)" -b "${_tempfile_cookie}" --referer "${url_ssl%*/}/submit" &> /dev/null
 
   open "${url_ssl%*/}/submissions/me"
 }
